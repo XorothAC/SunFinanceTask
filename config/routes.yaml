@@ -1,3 +1,7 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+
+payment:
+    path: /api/payment
+    controller: App\Controller\PaymentController::payment
