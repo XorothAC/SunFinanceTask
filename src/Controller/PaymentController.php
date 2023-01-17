@@ -11,7 +11,7 @@ class PaymentController extends AbstractController
     /**
      * @Route("/payment", name="app_payment")
      */
-    public function index(): JsonResponse
+    public function payment(): JsonResponse
     {
         return $this->json([
             'message' => 'Welcome to your new controller!',
