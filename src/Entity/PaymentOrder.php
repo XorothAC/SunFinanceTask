@@ -36,7 +36,7 @@ class PaymentOrder
     private $paymentDate;
 
     /**
-     * @ORM\Column(type="decimal", precision=10, scale=0)
+     * @ORM\Column(type="decimal", precision=10, scale=2)
      */
     private $amountToRefund;
 

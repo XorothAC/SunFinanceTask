@@ -60,10 +60,10 @@ class PaymentController extends AbstractController
 
         if ($paidAmount == $amountToPay) {
             $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);
-            $this->updateLoan($paidAmount, Loan::PAID, $doctrine);
+            $this->updateLoan($paidAmount, $loan, Loan::PAID, $doctrine);
         } else if ($paidAmount > $amountToPay) {
-            $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $loan, $doctrine);
             $this->queuePaymentOrder($data, bcsub($paidAmount, $amountToPay), PaymentOrder::IN_PROGRESS, $doctrine);
+            $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $loan, $doctrine);
             $this->updateLoan($amountToPay, $loan, Loan::PAID, $doctrine);
         } else {
             $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);            
@@ -109,7 +109,7 @@ class PaymentController extends AbstractController
         $paymentOrder = new PaymentOrder();
         $paymentOrder->setAmountToRefund($refundAmount);
         $paymentOrder->setDescription($data['description']);
-        $paymentOrder->setPaymentDate(date(DATE_ATOM, time()));
+        $paymentOrder->setPaymentDate(new DateTime());
         $paymentOrder->setRefId($data['refId']);
         $paymentOrder->setState($state);
 
