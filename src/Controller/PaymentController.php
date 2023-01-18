@@ -11,15 +11,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Psr\Log\LoggerInterface;
 
 class PaymentController extends AbstractController
 {
     /**
      * @Route("/api/payment", name="payment")
      */
-    public function payment(Request $request, ManagerRegistry $doctrine): JsonResponse
+    public function payment(Request $request, ManagerRegistry $doctrine, LoggerInterface $logger): JsonResponse
     {
         $data = $request->toArray()[0];
+        $logger->info('Started payment process.');
 
         if (!isset($data['firstname'], $data['lastname'], $data['paymentDate'], $data['amount'], $data['description'], $data['refId'])) {
             return $this->json(['error' => 'Not all arguments set.']);
@@ -47,12 +49,12 @@ class PaymentController extends AbstractController
             return $this->json(['error' => $ex->getMessage()]);
         }
 
-        $this->assignPayment($data, $doctrine);
+        $this->assignPayment($data, $doctrine, $logger);
 
         return $this->json(['message' => 'Payment successful.']);
     }
 
-    public function assignPayment($data, ManagerRegistry $doctrine) 
+    public function assignPayment($data, ManagerRegistry $doctrine, LoggerInterface $logger) 
     {
         $loan = $doctrine->getRepository(Loan::class)->findOneBy(['reference' => $data['description']]);
         $paidAmount = $data['amount'];
@@ -61,13 +63,16 @@ class PaymentController extends AbstractController
         if ($paidAmount == $amountToPay) {
             $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);
             $this->updateLoan($paidAmount, $loan, Loan::PAID, $doctrine);
+            $logger->info('Added new payment: ' . $data['description'] . '.');
         } else if ($paidAmount > $amountToPay) {
             $this->queuePaymentOrder($data, bcsub($paidAmount, $amountToPay), PaymentOrder::IN_PROGRESS, $doctrine);
             $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $loan, $doctrine);
             $this->updateLoan($amountToPay, $loan, Loan::PAID, $doctrine);
+            $logger->info('Added new payment: ' . $data['description'] . '. Updated loans. Added new payment order.');
         } else {
             $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);            
             $this->updateLoan($paidAmount, $loan, Loan::ACTIVE, $doctrine);
+            $logger->info('Added new payment: ' . $data['description'] . '. Updated loans.');
         }
 
         $doctrine->getManager()->flush();
