@@ -67,7 +67,7 @@ class ImportCSVCommand extends Command
 
         $loan = $this->entityManager->getRepository(Loan::class)->findOneBy(['reference' => $data[5]]);
 //        Some loans do not exist, cannot provide payments for them.
-        if (!$loan) {
+        if (!$loan || $data[3] < 0) {
             return false;
         }
 
