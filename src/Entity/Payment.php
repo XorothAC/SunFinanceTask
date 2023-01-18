@@ -53,7 +53,7 @@ class Payment
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $paymentResponse;
+    private $paymentReference;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -63,6 +63,13 @@ class Payment
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id;
+
+        return $this;
     }
 
     public function getPaymentDate(): ?\DateTimeInterface
@@ -137,14 +144,14 @@ class Payment
         return $this;
     }
 
-    public function getPaymentResponse(): ?string
+    public function getPaymentReference(): ?string
     {
-        return $this->paymentResponse;
+        return $this->paymentReference;
     }
 
-    public function setPaymentResponse(string $paymentResponse): self
+    public function setPaymentReference(string $paymentReference): self
     {
-        $this->paymentResponse = $paymentResponse;
+        $this->paymentReference = $paymentReference;
 
         return $this;
     }

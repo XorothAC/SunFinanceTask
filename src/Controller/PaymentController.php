@@ -3,8 +3,9 @@
 namespace App\Controller;
 
 use \DateTime;
-use App\Entity\Payment;
 use App\Entity\Loan;
+use App\Entity\Payment;
+use App\Entity\PaymentOrder;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -58,12 +59,62 @@ class PaymentController extends AbstractController
         $amountToPay = $loan->getAmountToPay();
 
         if ($paidAmount == $amountToPay) {
-            
-        } else if ($paidAmount < $amountToPay) {
-            
+            $this->createPayment($data, Payment::ASSIGNED, $doctrine);
+            $this->updateLoan($paidAmount, Loan::PAID, $doctrine);
+        } else if ($paidAmount > $amountToPay) {
+            $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $doctrine);
+            $this->queuePaymentOrder($data, $paidAmount - $amountToPay, PaymentOrder::IN_PROGRESS, $doctrine);
+            $this->updateLoan($amountToPay, $loan, Loan::PAID, $doctrine);
         } else {
-            
+            $this->createPayment($data, Payment::ASSIGNED, $doctrine);            
+            $this->updateLoan($paidAmount, Loan::ACTIVE, $doctrine);
         }
+    }
+
+    private function createPayment($data, $state, ManagerRegistry $doctrine)
+    {
+        $entityManager = $doctrine->getManager();
+
+        $payment = new Payment();
+        $payment->setId($data['refId']);
+        $payment->setAmount($data['amount']);
+        $payment->setDescription($data['description']);
+        $payment->setNationalSecurityNumber($data['nsn'] ?? null);
+        $payment->setPayerName($data['firstname']);
+        $payment->setPayerSurname($data['lastname']);
+        $payment->setPaymentDate($data['paymentDate']);
+        $payment->setPaymentResponse($data['paymentRsponse'] ?? null);
+        $payment->setState($state);
+
+        $entityManager->persist($payment);
+        $entityManager->flush();
+    }
+    
+    private function updateLoan($paidAmount, Loan $loan, $state, ManagerRegistry $doctrine)
+    {
+        $entityManager = $doctrine->getManager();
+
+        $loan->setAmountIssued($loan->getAmountIssued() + $paidAmount);
+        $loan->setAmountToPay($loan->getAmountToPay() - $paidAmount);
+        $loan->setState($state);
+        
+        $entityManager->persist($loan);
+        $entityManager->flush();        
+    }
+    
+    private function queuePaymentOrder ($data, $refundAmount, $state, ManagerRegistry $doctrine)
+    {
+        $entity = $doctrine->getManager();
+
+        $paymentOrder = new PaymentOrder();
+        $paymentOrder->setAmountToRefund($refundAmount);
+        $paymentOrder->setDescription($data['description']);
+        $paymentOrder->setPaymentDate(date(DATE_ATOM, time()));
+        $paymentOrder->setRefId($data['refId']);
+        $paymentOrder->setState($state);
+
+        $entityManager->persist($payment);
+        $entityManager->flush();
     }
 
     function validateDate($date, $format = 'Y-m-d H:i:s')
