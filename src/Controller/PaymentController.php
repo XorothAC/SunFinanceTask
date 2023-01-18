@@ -63,7 +63,7 @@ class PaymentController extends AbstractController
             $this->updateLoan($paidAmount, Loan::PAID, $doctrine);
         } else if ($paidAmount > $amountToPay) {
             $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $loan, $doctrine);
-            $this->queuePaymentOrder($data, $paidAmount - $amountToPay, PaymentOrder::IN_PROGRESS, $doctrine);
+            $this->queuePaymentOrder($data, bcsub($paidAmount, $amountToPay), PaymentOrder::IN_PROGRESS, $doctrine);
             $this->updateLoan($amountToPay, $loan, Loan::PAID, $doctrine);
         } else {
             $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);            
