@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use \DateTime;
 use App\Entity\Payment;
+use App\Entity\Loan;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,24 +24,46 @@ class PaymentController extends AbstractController
             return $this->json(['error' => 'Not all arguments set.']);
         }
 
-        if ($data['amount'] < 0) {
-            return $this->json(['error' => 'Invalid amount.']);
-        }
-
         if ($this->validateDate($data['paymentDate'])) {
             return $this->json(['error' => 'Invalid date.']);
         }
 
+        if ($data['amount'] < 0) {
+            return $this->json(['error' => 'Invalid amount.']);
+        }
+
+        //setup loan number validdation
+//        if ($data['amount'] < 0) {
+//            return $this->json(['error' => 'Invalid amount.']);
+//        }
+
         try {
             $payment = $doctrine->getRepository(Payment::class)->find($data['refId']);
-            if (!$payment) {
+            if ($payment) {
                 return $this->json(['error' => 'Duplicate entry.']);
             }
         } catch (Exception $ex) {
             return $this->json(['error' => $ex->getMessage()]);
         }
 
-        return $this->json($data);
+        $this->assignPayment($data, $doctrine);
+
+        return $this->json(['message' => 'Payment successful.']);
+    }
+
+    public function assignPayment($data, ManagerRegistry $doctrine) 
+    {
+        $loan = $doctrine->getRepository(Loan::class)->find($data['description']);
+        $paidAmount = $data['amount'];
+        $amountToPay = $loan->getAmountToPay();
+
+        if ($paidAmount == $amountToPay) {
+            
+        } else if ($paidAmount < $amountToPay) {
+            
+        } else {
+            
+        }
     }
 
     function validateDate($date, $format = 'Y-m-d H:i:s')

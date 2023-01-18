@@ -4,12 +4,17 @@ namespace App\Entity;
 
 use App\Repository\LoanRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @ORM\Entity(repositoryClass=LoanRepository::class)
  */
 class Loan
 {
+    const ACTIVE = 'ACTIVE';
+    const PAID = 'PAID';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -41,6 +46,16 @@ class Loan
      * @ORM\Column(type="decimal", precision=10, scale=0)
      */
     private $amount_to_pay;
+    
+    /**
+     * @ORM\OneToMany(targetEntity=Loan::class, mappedBy="description")
+     */
+    private $payments;
+
+    public function __construct()
+    {
+        $this->payments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -105,5 +120,10 @@ class Loan
         $this->amount_to_pay = $amount_to_pay;
 
         return $this;
+    }
+    
+    public function getPayments(): Collection
+    {
+        return $this->payments;
     }
 }

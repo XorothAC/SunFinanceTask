@@ -10,6 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Payment
 {
+    const ASSIGNED = 'ASSIGNED';
+    const PARTIALLY_ASSIGNED = 'PARTIALLY_ASSIGNED';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -43,7 +46,7 @@ class Payment
     private $nationalSecurityNumber;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\ManyToOne(targetEntity=Loan::class, inversedBy="reference")
      */
     private $description;
 
@@ -51,6 +54,11 @@ class Payment
      * @ORM\Column(type="string", length=255)
      */
     private $paymentResponse;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $state;
 
     public function getId(): ?int
     {
@@ -137,6 +145,18 @@ class Payment
     public function setPaymentResponse(string $paymentResponse): self
     {
         $this->paymentResponse = $paymentResponse;
+
+        return $this;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function setState(string $state): self
+    {
+        $this->state = $state;
 
         return $this;
     }
