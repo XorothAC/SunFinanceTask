@@ -33,10 +33,10 @@ class PaymentController extends AbstractController
             return $this->json(['error' => 'Invalid amount.']);
         }
 
-        //setup loan number validdation
-//        if ($data['amount'] < 0) {
-//            return $this->json(['error' => 'Invalid amount.']);
-//        }
+        $pattern = '/^([LN])+\d{8}$/';
+        if (!preg_match_all($pattern, $data['description'])) {
+            return $this->json(['error' => 'Bad description.']);
+        }
 
         try {
             $payment = $doctrine->getRepository(Payment::class)->find($data['refId']);
