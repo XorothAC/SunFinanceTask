@@ -33,7 +33,6 @@ class ShowPaymentsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $date = $input->getOption('date') ?? null;
-        $payments = array();
         $output = null;
 
         if ($date) {
