@@ -54,40 +54,41 @@ class PaymentController extends AbstractController
 
     public function assignPayment($data, ManagerRegistry $doctrine) 
     {
-        $loan = $doctrine->getRepository(Loan::class)->find($data['description']);
+        $loan = $doctrine->getRepository(Loan::class)->findOneBy(['reference' => $data['description']]);
         $paidAmount = $data['amount'];
         $amountToPay = $loan->getAmountToPay();
 
         if ($paidAmount == $amountToPay) {
-            $this->createPayment($data, Payment::ASSIGNED, $doctrine);
+            $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);
             $this->updateLoan($paidAmount, Loan::PAID, $doctrine);
         } else if ($paidAmount > $amountToPay) {
-            $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $doctrine);
+            $this->createPayment($data, Payment::PARTIALLY_ASSIGNED, $loan, $doctrine);
             $this->queuePaymentOrder($data, $paidAmount - $amountToPay, PaymentOrder::IN_PROGRESS, $doctrine);
             $this->updateLoan($amountToPay, $loan, Loan::PAID, $doctrine);
         } else {
-            $this->createPayment($data, Payment::ASSIGNED, $doctrine);            
-            $this->updateLoan($paidAmount, Loan::ACTIVE, $doctrine);
+            $this->createPayment($data, Payment::ASSIGNED, $loan, $doctrine);            
+            $this->updateLoan($paidAmount, $loan, Loan::ACTIVE, $doctrine);
         }
+
+        $doctrine->getManager()->flush();
     }
 
-    private function createPayment($data, $state, ManagerRegistry $doctrine)
+    private function createPayment($data, $state, $loan, ManagerRegistry $doctrine)
     {
         $entityManager = $doctrine->getManager();
 
         $payment = new Payment();
         $payment->setId($data['refId']);
         $payment->setAmount($data['amount']);
-        $payment->setDescription($data['description']);
+        $payment->setDescription($loan);
         $payment->setNationalSecurityNumber($data['nsn'] ?? null);
         $payment->setPayerName($data['firstname']);
         $payment->setPayerSurname($data['lastname']);
-        $payment->setPaymentDate($data['paymentDate']);
-        $payment->setPaymentResponse($data['paymentRsponse'] ?? null);
+        $payment->setPaymentDate(new DateTime($data['paymentDate']));
+        $payment->setPaymentReference($data['paymentReference'] ?? null);
         $payment->setState($state);
 
         $entityManager->persist($payment);
-        $entityManager->flush();
     }
     
     private function updateLoan($paidAmount, Loan $loan, $state, ManagerRegistry $doctrine)
@@ -98,13 +99,12 @@ class PaymentController extends AbstractController
         $loan->setAmountToPay($loan->getAmountToPay() - $paidAmount);
         $loan->setState($state);
         
-        $entityManager->persist($loan);
-        $entityManager->flush();        
+        $entityManager->persist($loan);       
     }
     
     private function queuePaymentOrder ($data, $refundAmount, $state, ManagerRegistry $doctrine)
     {
-        $entity = $doctrine->getManager();
+        $entityManager = $doctrine->getManager();
 
         $paymentOrder = new PaymentOrder();
         $paymentOrder->setAmountToRefund($refundAmount);
@@ -113,8 +113,7 @@ class PaymentController extends AbstractController
         $paymentOrder->setRefId($data['refId']);
         $paymentOrder->setState($state);
 
-        $entityManager->persist($payment);
-        $entityManager->flush();
+        $entityManager->persist($paymentOrder);
     }
 
     function validateDate($date, $format = 'Y-m-d H:i:s')

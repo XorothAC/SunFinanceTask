@@ -15,7 +15,6 @@ class Payment
 
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue
      * @ORM\Column(type="uuid")
      */
     private $id;
@@ -41,7 +40,7 @@ class Payment
     private $amount;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $nationalSecurityNumber;
 
@@ -51,7 +50,7 @@ class Payment
     private $description;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $paymentReference;
 
@@ -67,7 +66,7 @@ class Payment
 
     public function setId($id)
     {
-        $this->id;
+        $this->id = $id;
 
         return $this;
     }
@@ -125,7 +124,7 @@ class Payment
         return $this->nationalSecurityNumber;
     }
 
-    public function setNationalSecurityNumber(string $nationalSecurityNumber): self
+    public function setNationalSecurityNumber(?string $nationalSecurityNumber): self
     {
         $this->nationalSecurityNumber = $nationalSecurityNumber;
 
@@ -137,7 +136,7 @@ class Payment
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(Loan $description): self
     {
         $this->description = $description;
 
@@ -149,7 +148,7 @@ class Payment
         return $this->paymentReference;
     }
 
-    public function setPaymentReference(string $paymentReference): self
+    public function setPaymentReference(?string $paymentReference): self
     {
         $this->paymentReference = $paymentReference;
 
