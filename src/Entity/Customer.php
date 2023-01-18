@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @ORM\Entity(repositoryClass=CustomerRepository::class)
@@ -13,14 +15,9 @@ class Customer
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
-
-    /**
      * @ORM\Column(type="uuid")
      */
-    private $uuid;
+    private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -47,21 +44,19 @@ class Customer
      */
     private $phone;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Loan::class, mappedBy="id")
+     */
+    private $loans;
+
+    public function __construct()
+    {
+        $this->loans = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getUuid()
-    {
-        return $this->uuid;
-    }
-
-    public function setUuid($uuid): self
-    {
-        $this->uuid = $uuid;
-
-        return $this;
     }
 
     public function getFirstName(): ?string
@@ -122,5 +117,10 @@ class Customer
         $this->phone = $phone;
 
         return $this;
+    }
+    
+    public function getLoans(): Collection
+    {
+        return $this->loans;
     }
 }

@@ -13,19 +13,14 @@ class Loan
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="uuid")
      */
     private $id;
 
     /**
-     * @ORM\Column(type="uuid")
+     * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="id")
      */
-    private $uuid;
-
-    /**
-     * @ORM\Column(type="uuid")
-     */
-    private $customerId;
+    private $customer;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -52,26 +47,14 @@ class Loan
         return $this->id;
     }
 
-    public function getUuid()
+    public function getCustomerId(): ?Customer
     {
-        return $this->uuid;
+        return $this->customer;
     }
 
-    public function setUuid($uuid): self
+    public function setCustomerId(?Customer $customer): self
     {
-        $this->uuid = $uuid;
-
-        return $this;
-    }
-
-    public function getCustomerId()
-    {
-        return $this->customerId;
-    }
-
-    public function setCustomerId($customerId): self
-    {
-        $this->customerId = $customerId;
+        $this->customer = $customer;
 
         return $this;
     }

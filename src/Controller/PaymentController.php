@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PaymentController extends AbstractController
@@ -11,11 +12,10 @@ class PaymentController extends AbstractController
     /**
      * @Route("/payment", name="app_payment")
      */
-    public function payment(): JsonResponse
+    public function payment(Request $request): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/PaymentController.php',
-        ]);
+        $data = $request->toArray();
+        $result = array_pop($data);
+        return $this->json($result);
     }
 }
